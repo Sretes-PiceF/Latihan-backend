@@ -16,6 +16,15 @@ return new class extends Migration
             $table->string('product_name', 100)->nullable(false);
             $table->integer('product_stock')->nullable(false);
             $table->integer('product_price')->nullable(false);
+            $table->string('categories_id', 16)->nullable(false);
+
+            // Perbaiki: 'cascade' (bukan 'casecade')
+            $table->foreign('categories_id')
+                ->references('categories_id')
+                ->on('categories_products')
+                ->onDelete('cascade')  // <-- Ini yang diperbaiki
+                ->onUpdate('cascade');
+
             $table->timestamps();
         });
     }

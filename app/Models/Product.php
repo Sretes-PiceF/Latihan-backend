@@ -12,11 +12,18 @@ class Product extends Model
 
     protected $table = 'products';
     protected $primaryKey = 'product_id';
+    public $incrementing = false;
     protected $keyType = 'string';
     protected $fillable = [
         'product_id',
         'product_name',
         'product_stock',
-        'product_price'
+        'product_price',
+        'categories_id'
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(CategoriesProduct::class);
+    }
 }

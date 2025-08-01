@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoriesProductController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -8,3 +9,4 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::apiResource('/product', ProductController::class);
+Route::apiResource('/categories', CategoriesProductController::class);
