@@ -65,8 +65,14 @@ class CategoriesProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(CategoriesProduct $categoriesProduct)
+    public function destroy($categoriesProduct_id)
     {
-        //
+        $categoriesProduct = CategoriesProduct::find($categoriesProduct_id);
+        $categoriesProduct->delete();
+
+        return response()->json([
+            "message" => "data sukses dihapus",
+            $categoriesProduct
+        ]);
     }
 }

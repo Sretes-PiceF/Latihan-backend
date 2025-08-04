@@ -18,13 +18,26 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $data = Product::all();
+        $products = Product::with('category')->get();
+
+        $data = $products->map(function ($product) {
+            return [
+                'product_id' => $product->product_id,
+                'product_name' => $product->product_name,
+                'product_stock' => $product->product_stock,
+                'product_price' => $product->product_price,
+                'category_name' => $product->category?->categories_nama ?? '(Kategori tidak ditemukan)',
+                'created_at' => $product->created_at,
+                'updated_at' => $product->updated_at
+            ];
+        });
 
         return response()->json([
-            "Message" => "Sukses kawan",
-            $data
+            'Message' => 'Sukses kawan',
+            0 => $data
         ]);
     }
+
 
 
     /**
@@ -36,18 +49,29 @@ class ProductController extends Controller
             'product_name' => 'required|string',
             'product_stock' => 'required|integer',
             'product_price' => 'required|integer',
+            'categories_id' => 'required|string'
         ]);
+
 
         $product = Product::create([
             'product_id' => strtoupper(\Illuminate\Support\Str::random(16)),
             'product_name' => $request->product_name,
             'product_stock' => $request->product_stock,
             'product_price' => $request->product_price,
+            'categories_id' => $request->categories_id
         ]);
+
+        $product->load('category');
 
         return response()->json([
             'message' => 'Product created successfully',
-            'data' => $product
+            'data' => [
+                'product_id' => $product->product_id,
+                'product_name' => $product->product_name,
+                'product_stock' => $product->product_stock,
+                'product_price' => $product->product_price,
+                'category_name' => $product->category?->categories_nama ?? '(kategori tidak ditemukan)'
+            ]
         ]);
     }
 
