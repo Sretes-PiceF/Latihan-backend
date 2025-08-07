@@ -5,7 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\CategoriesProduct;
 use App\Http\Requests\StoreCategoriesProductRequest;
 use App\Http\Requests\UpdateCategoriesProductRequest;
+use Exception;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request as FacadesRequest;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class CategoriesProductController extends Controller
@@ -57,9 +62,44 @@ class CategoriesProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCategoriesProductRequest $request, CategoriesProduct $categoriesProduct)
+    public function update($categoriesProduct_id, Request $request)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $categories = CategoriesProduct::findOrFail($categoriesProduct_id);
+
+            $input = $request->all();
+
+            if ($request->isJson()) {
+                $input = $request->json()->all();
+            }
+
+            $validator = Validator::make($input, [
+                'categories_nama' => 'sometimes|string|max:255'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    "msg" => "Validasi gagal",
+                    "errors" => $validator->errors()
+                ], 422);
+            }
+
+            $categories->update($validator->validated());
+            DB::commit();
+
+            return response()->json([
+                'msg' => 'Data berhasil diperbarui',
+                'data' => $categories->refresh()
+            ], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'msg' => "Terjadi kesalahan",
+                'error' => $e->getMessage(),
+                'debug' => $request->all()
+            ], 500);
+        }
     }
 
     /**
