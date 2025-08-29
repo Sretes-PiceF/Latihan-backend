@@ -28,19 +28,25 @@ class CategoriesProductController extends Controller
 
         return $cachedToken && $cachedToken === $token;
     }
-
     public function index(Request $request)
     {
         if (!$this->checkToken($request)) {
             return response()->json(['message' => 'Token kadaluwarsa, mohon ambil ulang'], 403);
         }
 
-        $data = Cache::get('categories_product');
-        return response()->json([
-            'messgae' => "Sukses kawan",
-            'data' => $data
-        ]);
+        // Cache ke file (storage/framework/cache/data)
+        $data = Cache::remember('categories_product', 300, function () {
+            return CategoriesProduct::all();
+        });
+
+        return response()
+            ->json([
+                'message' => "Sukses kawan",
+                'data' => $data
+            ])
+            ->header('Cache-Control', 'public, max-age=300');
     }
+
 
     public function refreshData()
     {
