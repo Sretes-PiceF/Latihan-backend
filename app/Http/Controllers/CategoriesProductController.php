@@ -20,24 +20,9 @@ class CategoriesProductController extends Controller
      * Display a listing of the resource.
      */
 
-    private function checkToken(Request $request): bool
+    public function index()
     {
-        $userId = 1; // kalau sudah pakai auth bisa diganti auth()->id()
-        $token = $request->bearerToken();
-        $cachedToken = Cache::get("access_token:{$userId}");
-
-        return $cachedToken && $cachedToken === $token;
-    }
-    public function index(Request $request)
-    {
-        if (!$this->checkToken($request)) {
-            return response()->json(['message' => 'Token kadaluwarsa, mohon ambil ulang'], 403);
-        }
-
-        // Cache ke file (storage/framework/cache/data)
-        $data = Cache::remember('categories_product', 300, function () {
-            return CategoriesProduct::all();
-        });
+        $data = CategoriesProduct::all();
 
         return response()
             ->json([
@@ -63,9 +48,6 @@ class CategoriesProductController extends Controller
      */
     public function store(Request $request)
     {
-        if (!$this->checkToken($request)) {
-            return response()->json(['message' => 'Token kadaluwarsa'], 403);
-        }
 
         // validasi dulu
         $request->validate([
@@ -78,9 +60,6 @@ class CategoriesProductController extends Controller
             'categories_nama' => $request->categories_nama,
         ]);
 
-        // hapus cache biar data terbaru nanti diambil ulang
-        Cache::forget('categories_products');
-
         // response sukses
         return response()->json([
             'message' => 'Categories sukses ditambah',
@@ -92,12 +71,8 @@ class CategoriesProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(CategoriesProduct $categoriesProduct, Request $request)
+    public function show($categoriesProduct)
     {
-        if (!$this->checkToken($request)) {
-            return response()->json(['message' => 'Token kadaluwarsa'], 403);
-        }
-
         $categoriesProduct = CategoriesProduct::where('categories_id', $categoriesProduct)->first();
         if (!$categoriesProduct) {
             return response()->json(["Message" => "data invicible"], 404);
@@ -114,10 +89,6 @@ class CategoriesProductController extends Controller
      */
     public function update($categoriesProduct_id, Request $request)
     {
-        if (!$this->checkToken($request)) {
-            return response()->json(['message' => 'Token kadaluwarsa'], 403);
-        }
-
         DB::beginTransaction();
         try {
             $categories = CategoriesProduct::findOrFail($categoriesProduct_id);
@@ -165,16 +136,8 @@ class CategoriesProductController extends Controller
      */
     public function destroy($categoriesProduct_id, Request $request)
     {
-        if (!$this->checkToken($request)) {
-            return response()->json(['message' => 'Token kadaluwarsa'], 403);
-        }
-
         $categoriesProduct = CategoriesProduct::find($categoriesProduct_id);
         $categoriesProduct->delete();
-
-
-        // hapus cache biar data terbaru nanti diambil ulang
-        Cache::forget('categories_products');
 
         return response()->json([
             "message" => "data sukses dihapus",
